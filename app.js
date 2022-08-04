@@ -20,13 +20,22 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+// base route
 app.get("/", (req, res) => {
   res.render("home");
 });
 
+// route to get all campgrounds
 app.get("/campgrounds", async (req, res) => {
   const campgrounds = await Campgound.find({});
   res.render("campgrounds/index", { campgrounds });
+});
+
+// route for single campground based on id
+app.get("/campgrounds/:id", async (req, res) => {
+  const { id } = req.params;
+  const campground = await Campgound.findById(id);
+  res.render("campgrounds/show", { campground });
 });
 
 app.listen(PORT, () => {
