@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
 const Campgound = require("./models/campground");
+const methodOverrid = require("method-override");
 const PORT = 3000;
 
 mongoose.connect("mongodb://localhost:27017/yelp-camp", {
@@ -20,6 +21,7 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+app.use(methodOverrid("_method"));
 app.use(
   express.urlencoded({
     extended: true,
@@ -54,6 +56,22 @@ app.get("/campgrounds/:id", async (req, res) => {
   const { id } = req.params;
   const campground = await Campgound.findById(id);
   res.render("campgrounds/show", { campground });
+});
+
+// route to serve up form to edit campground
+app.get("/campgrounds/:id/edit", async (req, res) => {
+  const { id } = req.params;
+  const campground = await Campgound.findById(id);
+  res.render("campgrounds/edit", { campground });
+});
+
+// route that updates the campground
+app.put("/campgrounds/:id", async (req, res) => {
+  const { id } = req.params;
+  const campground = await Campgound.findByIdAndUpdate(id, {
+    ...req.body.campground,
+  });
+  res.redirect(`/campgrounds/${campground._id}`);
 });
 
 app.listen(PORT, () => {
