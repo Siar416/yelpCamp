@@ -20,6 +20,12 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+
 // base route
 app.get("/", (req, res) => {
   res.render("home");
@@ -29,6 +35,18 @@ app.get("/", (req, res) => {
 app.get("/campgrounds", async (req, res) => {
   const campgrounds = await Campgound.find({});
   res.render("campgrounds/index", { campgrounds });
+});
+
+// route to show form for adding new campground
+app.get("/campgrounds/new", (req, res) => {
+  res.render("campgrounds/new");
+});
+
+// route to post new campground
+app.post("/campgrounds", async (req, res) => {
+  const campground = new Campgound(req.body.campground);
+  await campground.save();
+  res.redirect(`/campgrounds/${campground._id}`);
 });
 
 // route for single campground based on id
