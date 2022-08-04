@@ -24,22 +24,9 @@ app.get("/", (req, res) => {
   res.render("home");
 });
 
-// test route to check if connection to db is good
-// and entry was created
-app.get("/makecampground", async (req, res) => {
-  const camp = new Campgound({
-    title: "Backyard",
-    description: "affordable camping",
-  });
-  await camp
-    .save()
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  res.send(camp);
+app.get("/campgrounds", async (req, res) => {
+  const campgrounds = await Campgound.find({});
+  res.render("campgrounds/index", { campgrounds });
 });
 
 app.listen(PORT, () => {
