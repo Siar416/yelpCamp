@@ -47,10 +47,14 @@ app.get("/campgrounds/new", (req, res) => {
 });
 
 // route to post new campground
-app.post("/campgrounds", async (req, res) => {
-  const campground = new Campgound(req.body.campground);
-  await campground.save();
-  res.redirect(`/campgrounds/${campground._id}`);
+app.post("/campgrounds", async (req, res, next) => {
+  try {
+    const campground = new Campgound(req.body.campground);
+    await campground.save();
+    res.redirect(`/campgrounds/${campground._id}`);
+  } catch (error) {
+    next(error);
+  }
 });
 
 // route for single campground based on id
@@ -81,6 +85,10 @@ app.delete("/campgrounds/:id", async (req, res) => {
   const { id } = req.params;
   await Campgound.findByIdAndDelete(id);
   res.redirect("/campgrounds");
+});
+
+app.use((err, req, res, next) => {
+  res.send("Something went wrong");
 });
 
 app.listen(PORT, () => {
