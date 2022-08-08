@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
 const ejsMate = require("ejs-mate");
+const catchAsync = require("./utils/catchAsync");
 const Campgound = require("./models/campground");
 const methodOverrid = require("method-override");
 const PORT = 3000;
@@ -36,10 +37,13 @@ app.get("/", (req, res) => {
 });
 
 // route to get all campgrounds
-app.get("/campgrounds", async (req, res) => {
-  const campgrounds = await Campgound.find({});
-  res.render("campgrounds/index", { campgrounds });
-});
+app.get(
+  "/campgrounds",
+  catchAsync(async (req, res) => {
+    const campgrounds = await Campgound.find({});
+    res.render("campgrounds/index", { campgrounds });
+  })
+);
 
 // route to show form for adding new campground
 app.get("/campgrounds/new", (req, res) => {
@@ -47,22 +51,24 @@ app.get("/campgrounds/new", (req, res) => {
 });
 
 // route to post new campground
-app.post("/campgrounds", async (req, res, next) => {
-  try {
+app.post(
+  "/campgrounds",
+  catchAsync(async (req, res, next) => {
     const campground = new Campgound(req.body.campground);
     await campground.save();
     res.redirect(`/campgrounds/${campground._id}`);
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 // route for single campground based on id
-app.get("/campgrounds/:id", async (req, res) => {
-  const { id } = req.params;
-  const campground = await Campgound.findById(id);
-  res.render("campgrounds/show", { campground });
-});
+app.get(
+  "/campgrounds/:id",
+  catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const campground = await Campgound.findById(id);
+    res.render("campgrounds/show", { campground });
+  })
+);
 
 // route to serve up form to edit campground
 app.get("/campgrounds/:id/edit", async (req, res) => {
@@ -72,20 +78,26 @@ app.get("/campgrounds/:id/edit", async (req, res) => {
 });
 
 // route that updates the campground
-app.put("/campgrounds/:id", async (req, res) => {
-  const { id } = req.params;
-  const campground = await Campgound.findByIdAndUpdate(id, {
-    ...req.body.campground,
-  });
-  res.redirect(`/campgrounds/${campground._id}`);
-});
+app.put(
+  "/campgrounds/:id",
+  catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const campground = await Campgound.findByIdAndUpdate(id, {
+      ...req.body.campground,
+    });
+    res.redirect(`/campgrounds/${campground._id}`);
+  })
+);
 
 // route to delete campground
-app.delete("/campgrounds/:id", async (req, res) => {
-  const { id } = req.params;
-  await Campgound.findByIdAndDelete(id);
-  res.redirect("/campgrounds");
-});
+app.delete(
+  "/campgrounds/:id",
+  catchAsync(async (req, res) => {
+    const { id } = req.params;
+    await Campgound.findByIdAndDelete(id);
+    res.redirect("/campgrounds");
+  })
+);
 
 app.use((err, req, res, next) => {
   res.send("Something went wrong");
