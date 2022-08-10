@@ -6,6 +6,7 @@ const { campgroundSchema } = require("./schemas.js");
 const catchAsync = require("./utils/catchAsync");
 const ExpressError = require("./utils/ExpressError");
 const Campgound = require("./models/campground");
+const Review = require("./models/review");
 const methodOverrid = require("method-override");
 const PORT = 3000;
 
@@ -113,6 +114,20 @@ app.delete(
     const { id } = req.params;
     await Campgound.findByIdAndDelete(id);
     res.redirect("/campgrounds");
+  })
+);
+
+// route to create review for campground
+app.post(
+  "/campgrounds/:id/reviews",
+  catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const campground = await Campgound.findById(id);
+    const review = new Review(req.body.review);
+    campground.reviews.push(review);
+    await review.save();
+    await campground.save();
+    res.redirect(`/campgrounds/${id}`);
   })
 );
 
