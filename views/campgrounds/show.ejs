@@ -36,7 +36,8 @@
     <form
       action="/campgrounds/<%= campground._id %>/reviews"
       method="POST"
-      class="mb-3"
+      class="mb-3 validated-form"
+      novalidate
     >
       <div class="mb-3">
         <label class="form-label" for="rating">Rating</label>
@@ -44,7 +45,7 @@
           type="range"
           id="rating"
           class="form-range"
-          min="0"
+          min="1"
           max="5"
           name="review[rating]"
         />
@@ -57,7 +58,9 @@
           id="body"
           cols="30"
           rows="3"
+          required
         ></textarea>
+        <div class="valid-feedback">Looks good!</div>
       </div>
       <button class="btn btn-success">Submit</button>
     </form>
