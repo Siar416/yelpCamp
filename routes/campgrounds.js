@@ -51,6 +51,10 @@ router.get(
   catchAsync(async (req, res) => {
     const { id } = req.params;
     const campground = await Campgound.findById(id).populate("reviews");
+    if (!campground) {
+      req.flash("error", "Unable to locate campground");
+      res.redirect("/campgrounds");
+    }
     res.render("campgrounds/show", { campground });
   })
 );
@@ -59,6 +63,10 @@ router.get(
 router.get("/:id/edit", async (req, res) => {
   const { id } = req.params;
   const campground = await Campgound.findById(id);
+  if (!campground) {
+    req.flash("error", "Unable to locate campground");
+    res.redirect("/campgrounds");
+  }
   res.render("campgrounds/edit", { campground });
 });
 
