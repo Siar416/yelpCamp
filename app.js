@@ -6,6 +6,9 @@ const session = require("express-session");
 const flash = require("connect-flash");
 const ExpressError = require("./utils/ExpressError");
 const methodOverrid = require("method-override");
+const passport = require("passport");
+const localStrategy = require("passport-local");
+const User = require("./models/user");
 const PORT = 3000;
 
 const campgrounds = require("./routes/campgrounds");
@@ -49,10 +52,23 @@ const sessionConfig = {
 app.use(session(sessionConfig));
 app.use(flash());
 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new localStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   next();
+});
+
+app.get("/fakeUser", async (req, res) => {
+  const user = await new User({ email: "siar@gmail.com", username: "siar416" });
+  const newUser = await User.register(user, "password");
+  res.send(newUser);
 });
 
 app.use("/campgrounds", campgrounds);
