@@ -6,6 +6,7 @@ const { isLoggedIn } = require("../middleware");
 
 const ExpressError = require("../utils/ExpressError");
 const Campgound = require("../models/campground");
+const campground = require("../models/campground");
 
 const validateCampground = (req, res, next) => {
   const { error } = campgroundSchema.validate(req.body);
@@ -69,9 +70,14 @@ router.get(
 router.get("/:id/edit", isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const campground = await Campgound.findById(id);
+
   if (!campground) {
     req.flash("error", "Unable to locate campground");
     res.redirect("/campgrounds");
+  }
+  if (!campground.author.equals(req.user._id)) {
+    req.flash("error", "You dont have permission to do that");
+    return res.redirect(`/campgrounds/${id}`);
   }
   res.render("campgrounds/edit", { campground });
 });
@@ -83,7 +89,12 @@ router.put(
   validateCampground,
   catchAsync(async (req, res) => {
     const { id } = req.params;
-    const campground = await Campgound.findByIdAndUpdate(id, {
+    const campground = await Campgound.findById(id);
+    if (!campground.author.equals(req.user._id)) {
+      req.flash("error", "You dont have permission to do that");
+      return res.redirect(`/campgrounds/${id}`);
+    }
+    const camp = await Campgound.findByIdAndUpdate(id, {
       ...req.body.campground,
     });
     req.flash("success", "Successfully updated campground!");
