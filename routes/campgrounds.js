@@ -1,22 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const catchAsync = require("../utils/catchAsync");
-const { campgroundSchema } = require("../schemas.js");
-const { isLoggedIn } = require("../middleware");
+const { isLoggedIn, isAuthor, validateCampground } = require("../middleware");
 
-const ExpressError = require("../utils/ExpressError");
 const Campgound = require("../models/campground");
-const campground = require("../models/campground");
-
-const validateCampground = (req, res, next) => {
-  const { error } = campgroundSchema.validate(req.body);
-  if (error) {
-    const msg = error.details.map((el) => el.message).join(",");
-    throw new ExpressError(msg, 400);
-  } else {
-    next(error);
-  }
-};
 
 // route to get all campgrounds
 router.get(
@@ -67,17 +54,13 @@ router.get(
 );
 
 // route to serve up form to edit campground
-router.get("/:id/edit", isLoggedIn, async (req, res) => {
+router.get("/:id/edit", isLoggedIn, isAuthor, async (req, res) => {
   const { id } = req.params;
   const campground = await Campgound.findById(id);
 
   if (!campground) {
     req.flash("error", "Unable to locate campground");
     res.redirect("/campgrounds");
-  }
-  if (!campground.author.equals(req.user._id)) {
-    req.flash("error", "You dont have permission to do that");
-    return res.redirect(`/campgrounds/${id}`);
   }
   res.render("campgrounds/edit", { campground });
 });
@@ -86,15 +69,11 @@ router.get("/:id/edit", isLoggedIn, async (req, res) => {
 router.put(
   "/:id",
   isLoggedIn,
+  isAuthor,
   validateCampground,
   catchAsync(async (req, res) => {
     const { id } = req.params;
-    const campground = await Campgound.findById(id);
-    if (!campground.author.equals(req.user._id)) {
-      req.flash("error", "You dont have permission to do that");
-      return res.redirect(`/campgrounds/${id}`);
-    }
-    const camp = await Campgound.findByIdAndUpdate(id, {
+    const campground = await Campgound.findByIdAndUpdate(id, {
       ...req.body.campground,
     });
     req.flash("success", "Successfully updated campground!");
@@ -106,6 +85,7 @@ router.put(
 router.delete(
   "/:id",
   isLoggedIn,
+  isAuthor,
   catchAsync(async (req, res) => {
     const { id } = req.params;
     await Campgound.findByIdAndDelete(id);
